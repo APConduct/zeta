@@ -3,16 +3,21 @@
 //
 
 #include <iostream>
-import zeta.integer;
+import zeta;
 
 
 
 int main()
 {
-    const zeta::integer a = 5;
-    const zeta::integer b = 3;
+    constexpr zeta::integer a = 5;
+    constexpr zeta::integer b = 3;
     zeta::integer c = a + b;
     std::cout << "a + b = " << c << std::endl;
     c = a - b;
     std::cout << "a - b = " << c << std::endl;
+
+    auto bar = sizeof(std::vector<zeta::i32>);
+    std::cout << "Size of vector<i32>: " << bar << std::endl;
+    bar = sizeof(zeta::i32);
+    std::cout << "Size of i32: " << bar << std::endl;
 }

@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-import zeta.fixdec;
+import zeta;
 
 int main()
 {

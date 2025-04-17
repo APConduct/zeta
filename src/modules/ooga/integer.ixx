@@ -1,8 +1,9 @@
 module;
 #include <string>
-// ReSharper disable once CppUnusedIncludeDirective
 #include <concepts>
 #include <cmath>
+#include <type_traits>
+#include <cstdint>
 export module zeta.integer;
 
 export namespace zeta
@@ -10,337 +11,348 @@ export namespace zeta
     /**
      * A wrapper class for integer values with comprehensive operator support
      */
-    struct  integer {
+    template<std::integral StorageT = int>
+    struct integer {
     private:
-        int value_;
+        StorageT value_;
 
     public:
+        using value_type = StorageT;
+
         // Constructors and basic conversions
-        integer(int value = 0) noexcept : value_(value) {}
+        constexpr integer(const StorageT value = 0) noexcept : value_(value) {}
 
+        // Conversion constructor from other integral types
+        template<std::integral OtherT>
+        constexpr explicit integer(const OtherT value) noexcept : value_(static_cast<StorageT>(value)) {}
 
-        operator int() const noexcept { return value_; }        [[nodiscard]] std::string to_string() const { return std::to_string(value_); }
-        
+        // Conversion constructor from other integer specializations
+        template<std::integral OtherT>
+        constexpr explicit integer(const integer<OtherT>& other) noexcept
+            : value_(static_cast<StorageT>(other.template as<StorageT>())) {}
+
+        constexpr operator StorageT() const noexcept { return value_; }
+
+        [[nodiscard]] std::string to_string() const { return std::to_string(value_); }
+
         template <typename T>
-        [[nodiscard]] T as() const noexcept { return static_cast<T>(value_); }
+        [[nodiscard]] constexpr T as() const noexcept { return static_cast<T>(value_); }
 
-        [[nodiscard]] float to_float() const noexcept { return as<float>(); }
-        [[nodiscard]] double to_double() const noexcept { return as<double>(); }
+        [[nodiscard]] constexpr float to_float() const noexcept { return as<float>(); }
+        [[nodiscard]] constexpr double to_double() const noexcept { return as<double>(); }
 
-        // Assignment operator
-        integer& operator=(int value) noexcept {
+        // Assignment operators
+        constexpr integer& operator=(StorageT value) noexcept {
             value_ = value;
             return *this;
         }
-        integer& operator=(const integer& other) noexcept = default;
+        constexpr integer& operator=(const integer& other) noexcept = default;
 
         // Increment/decrement operators
-        integer& operator++() noexcept {
+        constexpr integer& operator++() noexcept {
             ++value_;
             return *this;
         }
 
-        integer& operator--() noexcept {
+        constexpr integer& operator--() noexcept {
             --value_;
             return *this;
         }
 
-        integer operator++(int) noexcept {
+        constexpr integer operator++(int) noexcept {
             const integer temp = *this;
             ++value_;
             return temp;
         }
 
-        integer operator--(int) noexcept {
+        constexpr integer operator--(int) noexcept {
             const integer temp = *this;
             --value_;
             return temp;
         }
 
         // Unary operators
-        integer operator-() const noexcept {
+        constexpr integer operator-() const noexcept {
             return {-value_};
         }
 
-        integer operator~() const noexcept {
+        constexpr integer operator~() const noexcept {
             return {~value_};
         }
 
         // Compound assignment operators
-        integer& operator+=(const integer& other) noexcept {
+        constexpr integer& operator+=(const integer& other) noexcept {
             value_ += other.value_;
             return *this;
         }
 
-        integer& operator-=(const integer& other) noexcept {
+        constexpr integer& operator-=(const integer& other) noexcept {
             value_ -= other.value_;
             return *this;
         }
 
-        integer& operator*=(const integer& other) noexcept {
+        constexpr integer& operator*=(const integer& other) noexcept {
             value_ *= other.value_;
             return *this;
         }
 
-        integer& operator/=(const integer& other) noexcept {
+        constexpr integer& operator/=(const integer& other) noexcept {
             value_ /= other.value_;
             return *this;
         }
 
-        integer& operator%=(const integer& other) noexcept {
+        constexpr integer& operator%=(const integer& other) noexcept {
             value_ %= other.value_;
             return *this;
         }
 
-        integer& operator&=(const integer& other) noexcept {
+        constexpr integer& operator&=(const integer& other) noexcept {
             value_ &= other.value_;
             return *this;
         }
 
-        integer& operator|=(const integer& other) noexcept {
+        constexpr integer& operator|=(const integer& other) noexcept {
             value_ |= other.value_;
             return *this;
         }
 
-        integer& operator^=(const integer& other) noexcept {
+        constexpr integer& operator^=(const integer& other) noexcept {
             value_ ^= other.value_;
             return *this;
         }
 
-        integer& operator<<=(const integer& other) noexcept {
+        constexpr integer& operator<<=(const integer& other) noexcept {
             value_ <<= other.value_;
             return *this;
         }
 
-        integer& operator>>=(const integer& other) noexcept {
+        constexpr integer& operator>>=(const integer& other) noexcept {
             value_ >>= other.value_;
             return *this;
         }
 
         template<std::integral T>
-        integer& operator+=(const T& other) noexcept {
-            value_ += static_cast<int>(other);
+        constexpr integer& operator+=(const T& other) noexcept {
+            value_ += static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator-=(const T& other) noexcept {
-            value_ -= static_cast<int>(other);
+        constexpr integer& operator-=(const T& other) noexcept {
+            value_ -= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator*=(const T& other) noexcept {
-            value_ *= static_cast<int>(other);
+        constexpr integer& operator*=(const T& other) noexcept {
+            value_ *= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator/=(const T& other) noexcept {
-            value_ /= static_cast<int>(other);
+        constexpr integer& operator/=(const T& other) noexcept {
+            value_ /= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator%=(const T& other) noexcept {
-            value_ %= static_cast<int>(other);
+        constexpr integer& operator%=(const T& other) noexcept {
+            value_ %= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator&=(const T& other) noexcept {
-            value_ &= static_cast<int>(other);
+        constexpr integer& operator&=(const T& other) noexcept {
+            value_ &= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator|=(const T& other) noexcept {
-            value_ |= static_cast<int>(other);
+        constexpr integer& operator|=(const T& other) noexcept {
+            value_ |= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator^=(const T& other) noexcept {
-            value_ ^= static_cast<int>(other);
+        constexpr integer& operator^=(const T& other) noexcept {
+            value_ ^= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator<<=(const T& other) noexcept {
-            value_ <<= static_cast<int>(other);
+        constexpr integer& operator<<=(const T& other) noexcept {
+            value_ <<= static_cast<StorageT>(other);
             return *this;
         }
 
         template<std::integral T>
-        integer& operator>>=(const T& other) noexcept {
-            value_ >>= static_cast<int>(other);
+        constexpr integer& operator>>=(const T& other) noexcept {
+            value_ >>= static_cast<StorageT>(other);
             return *this;
         }
 
-        // Binary operators between two integers
-        integer operator+(const integer& other) const noexcept {
-            return {value_ + other.value_};
+        // Binary operators between two integers with common type promotion
+        template<std::integral OtherT>
+        auto operator+(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) + static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        integer operator-(const integer& other) const noexcept {
-            return {value_ - other.value_};
+        template<std::integral OtherT>
+        auto operator-(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) - static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        // template<typename T, typename U>
-        // U operator*(const T& other) const noexcept {
-        //     return {value_ * other.value_};
-        // }
-
-        integer operator*(const integer& other) const noexcept {
-            return {value_ * other.value_};
+        template<std::integral OtherT>
+        auto operator*(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) * static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-
-
-
-        integer operator/(const integer& other) const noexcept {
-            return {value_ / other.value_};
+        template<std::integral OtherT>
+        auto operator/(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) / static_cast<ResultT>(other.template as<ResultT>()));
         }
 
         double operator/(double other) const noexcept {
             return static_cast<double>(value_) / other;
         }
 
-        integer operator%(const integer& other) const noexcept {
-            return {value_ % other.value_};
+        template<std::integral OtherT>
+        auto operator%(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) % static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        integer operator&(const integer& other) const noexcept {
-            return {value_ & other.value_};
+        template<std::integral OtherT>
+        auto operator&(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) & static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        integer operator|(const integer& other) const noexcept {
-            return {value_ | other.value_};
+        template<std::integral OtherT>
+        auto operator|(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) | static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        integer operator^(const integer& other) const noexcept {
-            return {value_ ^ other.value_};
+        template<std::integral OtherT>
+        auto operator^(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) ^ static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        integer operator<<(const integer& other) const noexcept {
-            return {value_ << other.value_};
+        template<std::integral OtherT>
+        auto operator<<(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) << static_cast<ResultT>(other.template as<ResultT>()));
         }
 
-        integer operator>>(const integer& other) const noexcept {
-            return {value_ >> other.value_};
+        template<std::integral OtherT>
+        auto operator>>(const integer<OtherT>& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, OtherT>;
+            return integer<ResultT>(static_cast<ResultT>(value_) >> static_cast<ResultT>(other.template as<ResultT>()));
         }
 
         // Binary operators with integral types
         template<std::integral T>
-        integer operator+(const T& other) const noexcept {
-            return integer(value_ + static_cast<int>(other));
+        auto operator+(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) + static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator-(const T& other) const noexcept {
-            return integer(value_ - static_cast<int>(other));
+        auto operator-(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) - static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator*(const T& other) const noexcept {
-            return integer(value_ * static_cast<int>(other));
+        auto operator*(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) * static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator/(const T& other) const noexcept {
-            return integer(value_ / static_cast<int>(other));
+        auto operator/(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) / static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator%(const T& other) const noexcept {
-            return integer(value_ % static_cast<int>(other));
+        auto operator%(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) % static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator&(const T& other) const noexcept {
-            return integer(value_ & static_cast<int>(other));
+        auto operator&(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) & static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator|(const T& other) const noexcept {
-            return integer(value_ | static_cast<int>(other));
+        auto operator|(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) | static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator^(const T& other) const noexcept {
-            return integer(value_ ^ static_cast<int>(other));
+        auto operator^(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) ^ static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator<<(const T& other) const noexcept {
-            return integer(value_ << static_cast<int>(other));
+        auto operator<<(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) << static_cast<ResultT>(other));
         }
 
         template<std::integral T>
-        integer operator>>(const T& other) const noexcept {
-            return integer(value_ >> static_cast<int>(other));
+        auto operator>>(const T& other) const noexcept {
+            using ResultT = std::common_type_t<StorageT, T>;
+            return integer<ResultT>(static_cast<ResultT>(value_) >> static_cast<ResultT>(other));
         }
 
         // Comparison operators
-        bool operator==(const integer& other) const noexcept {
-            return value_ == other.value_;
+        template<std::integral OtherT>
+        constexpr bool operator==(const integer<OtherT>& other) const noexcept {
+            return value_ == other.template as<StorageT>();
         }
 
-        bool operator!=(const integer& other) const noexcept {
-            return value_ != other.value_;
+        template<std::integral OtherT>
+        constexpr bool operator!=(const integer<OtherT>& other) const noexcept {
+            return value_ != other.template as<StorageT>();
         }
 
-        bool operator<(const integer& other) const noexcept {
-            return value_ < other.value_;
-        }
-
-        bool operator<=(const integer& other) const noexcept {
-            return value_ <= other.value_;
-        }
-
-        bool operator>(const integer& other) const noexcept {
-            return value_ > other.value_;
-        }
-
-        bool operator>=(const integer& other) const noexcept {
-            return value_ >= other.value_;
+        template<std::integral OtherT>
+        constexpr auto operator<=>(const integer<OtherT>& other) const noexcept {
+            return value_ <=> other.template as<StorageT>();
         }
 
         template<std::integral T>
-        bool operator==(const T& other) const noexcept {
-            return value_ == static_cast<int>(other);
+        constexpr bool operator==(const T& other) const noexcept {
+            return value_ == static_cast<StorageT>(other);
         }
 
         template<std::integral T>
-        bool operator!=(const T& other) const noexcept {
-            return value_ != static_cast<int>(other);
+        constexpr bool operator!=(const T& other) const noexcept {
+            return value_ != static_cast<StorageT>(other);
         }
 
         template<std::integral T>
-        bool operator<(const T& other) const noexcept {
-            return value_ < static_cast<int>(other);
-        }
-
-        template<std::integral T>
-        bool operator<=(const T& other) const noexcept {
-            return value_ <= static_cast<int>(other);
-        }
-
-        template<std::integral T>
-        bool operator>(const T& other) const noexcept {
-            return value_ > static_cast<int>(other);
-        }
-
-        template<std::integral T>
-        bool operator>=(const T& other) const noexcept {
-            return value_ >= static_cast<int>(other);
+        constexpr auto operator<=>(const T& other) const noexcept {
+            return value_ <=> static_cast<StorageT>(other);
         }
 
         // Utility methods
-        [[nodiscard]] int digits() const noexcept {
+        [[nodiscard]] constexpr int digits() const noexcept {
             if (value_ == 0) return 1;
             int count = 0;
-            int n = value_;
+            auto n = value_;
             if (n < 0) n = -n;
             while (n != 0) {
                 n /= 10;
@@ -349,15 +361,14 @@ export namespace zeta
             return count;
         }
 
-        // Power operation (renamed to avoid confusion with bitwise XOR)
         template<std::integral T>
-        [[nodiscard]] integer pow(const T& exponent) const noexcept {
-            if (exponent < 0) return {0}; // handle negative exponents
-            
-            int result = 1;
-            int base = value_;
-            int exp = static_cast<int>(exponent);
-            
+        [[nodiscard]] constexpr auto pow(const T& exponent) const noexcept {
+            if (exponent < 0) return integer<StorageT>(0);
+
+            StorageT result = 1;
+            StorageT base = value_;
+            auto exp = static_cast<StorageT>(exponent);
+
             while (exp > 0) {
                 if (exp % 2 == 1) {
                     result *= base;
@@ -365,96 +376,110 @@ export namespace zeta
                 base *= base;
                 exp /= 2;
             }
-            return {result};
-        }
-        //generic pow function (for fractional exponents)
-        template<std::floating_point T>
-        double pow(const T& exponent) const noexcept {
-            return std::pow(static_cast<double>(value_), static_cast<double>(exponent));
-        }
-        [[nodiscard]] double pow(double exponent) const noexcept {
-            return std::pow(static_cast<double>(value_), exponent);
+            return integer<StorageT>(result);
         }
 
+        template<typename T>
+        requires (!std::integral<T> && std::is_arithmetic_v<T>)
+        [[nodiscard]] double pow(const T& exponent) const noexcept {
+            return std::pow(static_cast<double>(value_), static_cast<double>(exponent));
+        }
 
 
     };
 
-
-
-    // Friend operators for reversed operand order
-    template<std::integral T>
-    integer operator+(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) + static_cast<int>(rhs));
+    // Free function operators for mixed-type operations
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator+(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) + static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator-(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) - static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator-(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) - static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator*(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) * static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator*(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) * static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator/(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) / static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator/(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) / static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator%(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) % static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator%(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) % static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator&(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) & static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator&(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) & static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator|(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) | static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator|(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) | static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    integer operator^(const T& lhs, const integer& rhs) noexcept {
-        return integer(static_cast<int>(lhs) ^ static_cast<int>(rhs));
+    template<std::integral LhsT, std::integral RhsT>
+    auto operator^(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        using ResultT = std::common_type_t<LhsT, RhsT>;
+        return integer<ResultT>(static_cast<ResultT>(lhs) ^ static_cast<ResultT>(rhs));
     }
 
-    template<std::integral T>
-    bool operator==(const T& lhs, const integer& rhs) noexcept {
-        return static_cast<int>(lhs) == static_cast<int>(rhs);
+    template<std::integral LhsT, std::integral RhsT>
+    constexpr bool operator==(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        return static_cast<RhsT>(lhs) == static_cast<RhsT>(rhs);
     }
 
-    template<std::integral T>
-    bool operator!=(const T& lhs, const integer& rhs) noexcept {
-        return static_cast<int>(lhs) != static_cast<int>(rhs);
+    template<std::integral LhsT, std::integral RhsT>
+    constexpr bool operator!=(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        return static_cast<RhsT>(lhs) != static_cast<RhsT>(rhs);
     }
 
-    template<std::integral T>
-    bool operator<(const T& lhs, const integer& rhs) noexcept {
-        return static_cast<int>(lhs) < static_cast<int>(rhs);
+    template<std::integral LhsT, std::integral RhsT>
+    constexpr auto operator<=>(const LhsT& lhs, const integer<RhsT>& rhs) noexcept {
+        return static_cast<RhsT>(lhs) <=> static_cast<RhsT>(rhs);
     }
 
-    template<std::integral T>
-    bool operator<=(const T& lhs, const integer& rhs) noexcept {
-        return static_cast<int>(lhs) <= static_cast<int>(rhs);
-    }
+    // Common aliases
+    using default_integer = integer<int>;
 
-    template<std::integral T>
-    bool operator>(const T& lhs, const integer& rhs) noexcept {
-        return static_cast<int>(lhs) > static_cast<int>(rhs);
-    }
+    // Fixed-size integer aliases
+    using i8 = integer<std::int8_t>;
+    using i16 = integer<std::int16_t>;
+    using i32 = integer<std::int32_t>;
+    using i64 = integer<std::int64_t>;
 
-    template<std::integral T>
-    bool operator>=(const T& lhs, const integer& rhs) noexcept {
-        return static_cast<int>(lhs) >= static_cast<int>(rhs);
-    }
+    // Unsigned variants
+    using u8 = integer<std::uint8_t>;
+    using u16 = integer<std::uint16_t>;
+    using u32 = integer<std::uint32_t>;
+    using u64 = integer<std::uint64_t>;
 
+    // Fast/least variants
 
+    using fast_i32 = integer<std::int_fast32_t>;
+    using fast_i64 = integer<std::int_fast64_t>;
+    using least_i32 = integer<std::int_least32_t>;
+    using least_i64 = integer<std::int_least64_t>;
 
+    // For backwards compatibility with existing code
+    using integer_t = default_integer;
 
-
+    // Updated concept for type checking
+    template <typename T>
+    concept is_integer = std::integral<T> ||
+                        (requires { typename T::value_type; } &&
+                         std::integral<typename T::value_type>);
 }
